@@ -20,13 +20,13 @@ You can install these packages in [Debian GNU/Linux](https://www.debian.org/) by
 line:
 
 ```bash
-# apt install freeglut3-dev libglew-dev gcc make build-essential
+apt install freeglut3-dev libglew-dev gcc make build-essential
 ```
 
 then you can navigate to any folder and simply run:
 
 ```bash
-$ make
+make
 ```
 
 and then run the application.
