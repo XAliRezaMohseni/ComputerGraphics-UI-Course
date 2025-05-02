@@ -2,15 +2,13 @@
 Author: AliReza Mohseni (4004013069): al[dot]mohseni[at]yahoo[dot]com
 */
 
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 #include <GL/glut.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-
-#define WINDOW_WIDTH    600
-#define WINDOW_HEIGHT   600
+#define WINDOW_WIDTH 600
+#define WINDOW_HEIGHT 600
 
 typedef struct
 {
@@ -36,12 +34,13 @@ void display(void);
 void mouseInput(int, int, int, int);
 void addRawPoint(int, int);
 void drawTriangle(const Triangle *);
-void convertLocation(const int* raw_x, const int* raw_y, double* x, double* y);
-void getRandomColor(GLdouble* red, GLdouble* green, GLdouble* blue);
+void convertLocation(const int *raw_x, const int *raw_y, double *x, double *y);
+void getRandomColor(GLdouble *red, GLdouble *green, GLdouble *blue);
 
 Triangle flushPointsBuffer();
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB);
@@ -58,7 +57,8 @@ int main(int argc, char **argv)
 /**
  * @brief The glut display function callback.
  * */
-void display(void)
+void
+display(void)
 {
   glClearColor(0, 0.5, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT);
@@ -72,50 +72,50 @@ void display(void)
  * @param The x cordinate of clicked position.
  * @param The y cordinate of clicked position.
  * */
-void mouseInput(int button, int action, int x, int y)
+void
+mouseInput(int button, int action, int x, int y)
 {
 
-  if ((button == 0) && (action == 0))
-  {
-    addRawPoint(x, y);
-  }
+  if((button == 0) && (action == 0))
+    {
+      addRawPoint(x, y);
+    }
 }
 
 /**
- * @brief This function adds the point with the location of mouse to the points buffer
- * when the mouse button is clicked.
+ * @brief This function adds the point with the location of mouse to the points
+ * buffer when the mouse button is clicked.
  * @param x The x cordinate of the clicked point.
  * @param y The y cordinate of the clicked point.
  */
-void addRawPoint(int x, int y)
+void
+addRawPoint(int x, int y)
 {
 
-  double a = 0 , b = 0;
+  double a = 0, b = 0;
   convertLocation(&x, &y, &a, &b);
   printf("The converted location of point is: %f, %f.\n", a, b);
 
-  Point point = {
-      .x = a,
-      .y = b
-  };
+  Point point = { .x = a, .y = b };
 
   point_buffer[points_state] = point;
   ++points_state;
 
-   if (points_state >= 3)
-  {
-    Triangle buffer = flushPointsBuffer();
-    drawTriangle(&buffer);
-    points_state = 0;
-  }
+  if(points_state >= 3)
+    {
+      Triangle buffer = flushPointsBuffer();
+      drawTriangle(&buffer);
+      points_state = 0;
+    }
 }
 
 /**
  * @brief Clears the point buffer and creates a Triangle object
  * Whith them.
  * @returns A Triangle created from current buffer points.
-*/
-Triangle flushPointsBuffer()
+ */
+Triangle
+flushPointsBuffer()
 {
   Triangle triangle;
   triangle.a = point_buffer[0];
@@ -129,7 +129,8 @@ Triangle flushPointsBuffer()
  * @param triangle The address of triangle which is going
  * to be draw.
  */
-void drawTriangle(const Triangle *triangle)
+void
+drawTriangle(const Triangle *triangle)
 {
   GLdouble red = 0, green = 0, blue = 0;
   getRandomColor(&red, &green, &blue);
@@ -142,7 +143,6 @@ void drawTriangle(const Triangle *triangle)
   glVertex2d(triangle->c.x, triangle->c.y);
   glEnd();
   glFlush();
-  
 }
 
 /**
@@ -153,28 +153,29 @@ void drawTriangle(const Triangle *triangle)
  * @param x The converted x cordinate to normal
  * @param y The converted y cordinate to normal
  * */
-void convertLocation(const int* raw_x, const int* raw_y, double* x, double* y)
+void
+convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
 {
-  const uint64_t half_window_width  = glutGet(GLUT_WINDOW_WIDTH)  / 2;
+  const uint64_t half_window_width = glutGet(GLUT_WINDOW_WIDTH) / 2;
   const uint64_t half_window_height = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 
   int ret_x = (*raw_x - half_window_width);
   int ret_y = (half_window_height - *raw_y);
 
-  *x = ((double) ret_x) / (double) half_window_width;
-  *y = ((double) ret_y) / (double) half_window_height;
-
+  *x = ((double)ret_x) / (double)half_window_width;
+  *y = ((double)ret_y) / (double)half_window_height;
 }
 
-/** 
-* @brief Generates a random color for drawing triangles.
-* @param red The value of the red channel of the color.
-* @param green The value of the green channel of the color.
-* @param blue The value of the blue channel of the color.
-*/
-void getRandomColor(GLdouble* red, GLdouble* green, GLdouble* blue)
+/**
+ * @brief Generates a random color for drawing triangles.
+ * @param red The value of the red channel of the color.
+ * @param green The value of the green channel of the color.
+ * @param blue The value of the blue channel of the color.
+ */
+void
+getRandomColor(GLdouble *red, GLdouble *green, GLdouble *blue)
 {
-  *red   = (GLdouble) (rand() % 255) / 255;
-  *green = (GLdouble) (rand() % 255) / 255;
-  *blue  = (GLdouble) (rand() % 255) / 255;
+  *red = (GLdouble)(rand() % 255) / 255;
+  *green = (GLdouble)(rand() % 255) / 255;
+  *blue = (GLdouble)(rand() % 255) / 255;
 }
