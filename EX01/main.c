@@ -96,8 +96,7 @@ addRawPoint(int x, int y)
   convertLocation(&x, &y, &a, &b);
   printf("The converted location of point is: %f, %f.\n", a, b);
 
-  Point point = { .x = a, .y = b };
-
+  Point point                = { .x = a, .y = b };
   point_buffer[points_state] = point;
   ++points_state;
 
@@ -156,14 +155,16 @@ drawTriangle(const Triangle *triangle)
 void
 convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
 {
-  const uint64_t half_window_width = glutGet(GLUT_WINDOW_WIDTH) / 2;
+  // Getting the size of the window
+  const uint64_t half_window_width  = glutGet(GLUT_WINDOW_WIDTH) / 2;
   const uint64_t half_window_height = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 
+  // Converted cordinates
   int ret_x = (*raw_x - half_window_width);
   int ret_y = (half_window_height - *raw_y);
 
-  *x = ((double)ret_x) / (double)half_window_width;
-  *y = ((double)ret_y) / (double)half_window_height;
+  *x        = ((double)ret_x) / (double)half_window_width;
+  *y        = ((double)ret_y) / (double)half_window_height;
 }
 
 /**
@@ -175,7 +176,7 @@ convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
 void
 getRandomColor(GLdouble *red, GLdouble *green, GLdouble *blue)
 {
-  *red = (GLdouble)(rand() % 255) / 255;
+  *red   = (GLdouble)(rand() % 255) / 255;
   *green = (GLdouble)(rand() % 255) / 255;
-  *blue = (GLdouble)(rand() % 255) / 255;
+  *blue  = (GLdouble)(rand() % 255) / 255;
 }
