@@ -1,4 +1,5 @@
 
-BasedOnStyle: GNU
+BasedOnStyle: GNU 
 SpaceBeforeParens: Never
 AlignConsecutiveAssignments: AcrossEmptyLines
+AlignConsecutiveBitFields: AcrossEmptyLines

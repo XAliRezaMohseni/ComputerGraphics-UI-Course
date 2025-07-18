@@ -2,7 +2,7 @@
 
 
 CC = gcc
-LDFLAGS = -lGL -lX11 -lglut
+LDFLAGS = -lGL -lX11 -lglut -lm
 CFLAGS  = -g -Wall -Wextra -ggdb
 SOURCES = main.c sources/DisplayManager.c
 OBJECTS = $(SOURCES:.c=.o)
@@ -13,6 +13,9 @@ TARGET  = 002
 .SILENT:
 
 all: $(TARGET)
+
+run: $(TARGET)
+	./$(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(OBJECTS) $(LDFLAGS)

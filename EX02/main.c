@@ -4,7 +4,6 @@
 
 #include "./sources/DisplayManager.h"
 #include <GL/glut.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int
@@ -17,7 +16,8 @@ main(int argc, char **argv)
                                       "AliReza Mohseni"
                                       " "
                                       "4004013069");
-  glutDisplayFunc(display);
+  init();
+  glutTimerFunc(0, update, 0);
   glutMainLoop();
   return EXIT_SUCCESS;
 }
