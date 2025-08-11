@@ -1,3 +1,36 @@
+/*
+  BSD 3-Clause License
+
+Copyright (c) 2025, AliReza Mohseni <al.mohseni@yahoo.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ */
+
 #include "./DisplayManager.h"
 #include "../lib/lwlog.h"
 #include "DisplayManager.h"
@@ -11,17 +44,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-static Racket main_racket;
-static Ball main_ball;
-static bool first_time_move;
-static uint8_t count_of_collisions;
-static uint8_t count_of_losts = 0;
-static GameContext current_game_mode;
-static GameContext game_modes[3];
+static Racket		main_racket;
+static Ball		main_ball;
+static bool		first_time_move;
+static uint8_t		count_of_collisions;
+static uint8_t		count_of_losts = 0;
+static GameContext	current_game_mode;
+static GameContext	game_modes[3];
 
 /**
  * @brief This is the main display function of the glut.
- * TODO: Write the doc.
  */
 void
 display()
@@ -76,8 +108,28 @@ init()
   hard.difficulty                   = Hard;
   game_modes[2]                     = hard;
 
-  current_game_mode                 = easy;
+  // Setting the glut handlers
+  glutDisplayFunc(display);
+  glutSpecialFunc(arrowKeyHandler);
+  glutMouseFunc(mouseHandler);
+  initMenu();
+  reset(true);
+}
 
+/**
+ * @brief This function sets the initial values of the variables
+ * for starting the game. It gets an argument which indicates
+ * the initialization state.
+ * @param hard_reset This argument indicates the state of initialization.
+ * If it is true, then it does not save the current state of the game and
+ * clears that; otherwise, the function only sets the position and other
+ * things like that, and does not touch the current game state.
+ */
+void
+reset(bool hard_reset)
+{
+
+  first_time_move = true;
   RacketBody racket_body;
   makeRacketBody(&racket_body, -0.9, 0.05, 0.5);
 
@@ -92,6 +144,7 @@ init()
   main_ball.colour[0]            = 0.7f;
   main_ball.colour[1]            = 0.4f;
   main_ball.colour[2]            = 0.2f;
+
   main_ball.center.x             = 0.0f;
   main_ball.center.y             = 0.0f;
   main_ball.radius               = 0.07f;
@@ -100,12 +153,15 @@ init()
   main_ball.speed                = current_game_mode.initial_ball_speed;
 
   makeBallBody();
-
-  // Setting the glut handlers
-  glutDisplayFunc(display);
-  glutSpecialFunc(arrowKeyHandler);
-  glutMouseFunc(mouseHandler);
-  initMenu();
+  
+  if(true == hard_reset)
+    {
+      count_of_collisions = 0;
+      count_of_losts      = 0;
+      current_game_mode   = game_modes[0];
+      glutTimerFunc(16, update, 0); 
+    }
+  
 }
 
 /**
@@ -128,13 +184,17 @@ initMenu()
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
+/**
+ * @brief This function handles the menu actions.
+ * @param handle The selected menu item.
+ */
 void
 mainMenuHandler(const int handle)
 {
   switch(handle)
     {
     case 0:
-      init();
+      reset(true);
       break;
     case 1:
       break;
@@ -146,13 +206,17 @@ mainMenuHandler(const int handle)
     }
 }
 
+/**
+ * @brief This function handles the actions for
+ * sub-menus.
+ * @param entry The sub-menu to be handled.
+ */
 void
 subMenuHandler(const int entry)
 {
   switch(entry)
     {
     case 0:
-      lwlog_alert("Set to easy");
       changeGameMode(Easy);
       break;
     case 1:
@@ -166,25 +230,29 @@ subMenuHandler(const int entry)
     }
 }
 
+/**
+ * @brief This function is the main loop function of the glut.
+ * @param value The value passed to update function in every execution.
+ */
 void
-update(__attribute__((unused)) const int value)
+update(const int value)
 {
   glClear(GL_COLOR_BUFFER_BIT);
   drawRacket();
   drawBall();
-
-  lostCheck();
-
   moveBall();
   traceBallMove();
-
+  lostCheck();
   glutSwapBuffers();
   glutTimerFunc(16, update, 0);
 }
 
 /**
- * @brief
- * @param body
+ * @brief This function makes an array of points to represent the racket body.
+ * @param body The array to store the points. It is global BTW!
+ * @param center Indicates that where should be the center of the racket.
+ * @param width The width of the racket.
+ * @param height The height of the racket.
  */
 void
 makeRacketBody(RacketBody *body, const GLfloat center, const GLfloat width,
@@ -213,11 +281,14 @@ makeRacketBody(RacketBody *body, const GLfloat center, const GLfloat width,
   body->bottom_left.x = center - x_shift;
   body->bottom_left.y = -1.0f * y_shift;
 
-  lwlog_debug("%s", "The racket body made successfully.");
+  lwlog_info("%s", "The racket body made successfully.");
 }
 
 /**
- * TODO: WRITE DOC.
+ * @brief This function handles the arrow key press.
+ * @param key The code of the pressed key.
+ * @param x The x cordinate of the mose when the key is pressd.
+ * @param y The y cordinate of the mose when the key is pressd.
  */
 void
 arrowKeyHandler(const int key, const int x, const int y)
@@ -226,11 +297,9 @@ arrowKeyHandler(const int key, const int x, const int y)
     {
     case GLUT_KEY_UP:
       moveRacket(true);
-      lwlog_debug("%s", "Moving the racket up.");
       break;
     case GLUT_KEY_DOWN:
       moveRacket(false);
-      lwlog_debug("%s", "Moving the racket down.");
       break;
     default:
       break;
@@ -238,7 +307,8 @@ arrowKeyHandler(const int key, const int x, const int y)
 }
 
 /**
- *
+ * @brief This function moves the racket body.
+ * @param direction The direction which racket should move.
  */
 void
 moveRacket(const bool direction)
@@ -299,7 +369,7 @@ moveRacket(const bool direction)
 }
 
 /**
- *
+ * @brief This function draws the racket.
  */
 void
 drawRacket()
@@ -316,7 +386,7 @@ drawRacket()
 }
 
 /**
- * TODO: Write the doc.
+ * @brief This function creates the body of the ball.
  */
 void
 makeBallBody()
@@ -336,7 +406,7 @@ makeBallBody()
 }
 
 /**
- * TODO: Write the doc.
+ * @brief This function moves the ball.
  */
 void
 moveBall()
@@ -361,12 +431,10 @@ moveBall()
 
   main_ball.center.x += main_ball.movement_direction.x;
   main_ball.center.y += main_ball.movement_direction.y;
-
-  // Wall collision detection.
 }
 
 /**
- *
+ * @brief This function draws the ball.
  */
 void
 drawBall()
@@ -384,7 +452,8 @@ drawBall()
 }
 
 /**
- *
+ * @brief This function returns the size of an array.
+ * @param vector The vector which its size should be returned.
  */
 float
 sizeOfVector(const Vector *vector)
@@ -392,6 +461,9 @@ sizeOfVector(const Vector *vector)
   return sqrt(pow(vector->x, 2) + pow(vector->y, 2));
 }
 
+/**
+ * @brief This function 
+ */
 void
 mouseHandler(const int button, const int state, const int x, const int y)
 {
@@ -419,7 +491,7 @@ void
 convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
 {
   // Getting the size of the window
-  const uint64_t half_window_width  = glutGet(GLUT_WINDOW_WIDTH) / 2;
+  const uint64_t half_window_width  = glutGet(GLUT_WINDOW_WIDTH)  / 2;
   const uint64_t half_window_height = glutGet(GLUT_WINDOW_HEIGHT) / 2;
 
   // Converted cordinates
@@ -440,12 +512,12 @@ startBallMovement(Vector *start_vector)
   if(!first_time_move)
     return;
 
-  const float size_of_start_vector = sizeOfVector(start_vector);
-  const float x_unit_vector        = start_vector->x / size_of_start_vector;
-  const float y_unit_vector        = start_vector->y / size_of_start_vector;
-  main_ball.movement_direction.x   = x_unit_vector / main_ball.speed;
-  main_ball.movement_direction.y   = y_unit_vector / main_ball.speed;
-  first_time_move                  = false;
+  const float	size_of_start_vector = sizeOfVector(start_vector);
+  const float	x_unit_vector        = start_vector->x	/ size_of_start_vector;
+  const float	y_unit_vector        = start_vector->y	/ size_of_start_vector;
+  main_ball.movement_direction.x     = x_unit_vector	/ main_ball.speed;
+  main_ball.movement_direction.y     = y_unit_vector	/ main_ball.speed;
+  first_time_move		     = false;
 }
 
 /**
@@ -459,23 +531,30 @@ traceBallMove()
   const GLfloat ball_border_right  = main_ball.center.x + main_ball.radius;
   const GLfloat ball_border_left   = main_ball.center.x - main_ball.radius;
 
-  // For wall collision detection.
+  // wall collision detection.
   bool should_be_mirror = (ball_border_top >= 1) | (ball_border_right >= 1)
-                          | (ball_border_bottom <= -1);
+						 | (ball_border_bottom <= -1);
 
-  // For racket collision detection.
+  // racket collision detection.
   const float bottom_limit
       = main_racket.body.bottom_right.y - ball_border_bottom;
   const float top_limit = main_racket.body.top_right.y - ball_border_top;
   should_be_mirror |= (ball_border_left <= main_racket.body.bottom_right.x)
-                      && (bottom_limit <= 0) && (top_limit >= 0);
+                       && (bottom_limit <= 0) && (top_limit >= 0);
 
-  bool is_lost = -1 >= ball_border_left;
+  bool is_lost              = -1 >= ball_border_left;
+  char *lost_status_message = (char *)malloc(sizeof(char) * 20);
+
+  sprintf(lost_status_message, "Life: %d",
+          current_game_mode.game_over_limit - count_of_losts);
+  writeScreenText(lost_status_message);
 
   if(is_lost)
     {
-      init();
       count_of_losts++;
+      lwlog_notice("Ball out. Reseting game. %d times to fully lost.",
+                   current_game_mode.game_over_limit - count_of_losts);
+      reset(false);
     }
 
   if(false == should_be_mirror)
@@ -533,7 +612,7 @@ redirectBall()
 /**
  * @brief
  */
-void
+inline void
 writeScreenText(const char *text)
 {
   char *c = (char *)malloc(sizeof(char) * strnlen(text, 50));
@@ -569,15 +648,24 @@ changeGameMode(Difficulty difficulty)
 void
 lostCheck()
 {
-  if (count_of_losts >= current_game_mode.game_over_limit) 
-  {
-    init();
-    glutTimerFunc(16, lostUpdateFunc, 0);
-  }
-}
+  if(count_of_losts >= current_game_mode.game_over_limit)
+    {
+      lwlog_notice("Lost. Reseting the game.");
+      reset(false);
+      //      glutTimerFunc(16, lostUpdateFunc, 0);
+      lostUpdateFunc(0);
+    }
+}  
 
-void lostUpdateFunc(__attribute__((unused)) const int rate)
+
+void
+lostUpdateFunc(const int value)
 {
-  writeScreenText("You Lost!");
+  char *game_over_status_message = (char *)malloc(sizeof(char) * 20);
+
+  sprintf(game_over_status_message, "Game Over!", NULL);
+  
+  lwlog_info("Game is over.");
+  writeScreenText(game_over_status_message);
   glutTimerFunc(16, lostUpdateFunc, 0);
 }

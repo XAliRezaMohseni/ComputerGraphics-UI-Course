@@ -64,6 +64,7 @@ typedef struct
 
 void display(void);
 void init(void);
+void reset(bool hard_reset);
 void reshapeHandler(const int, const int);
 void arrowKeyHandler(const int, const int, const int);
 void mouseHandler(const int, const int, const int, const int);
