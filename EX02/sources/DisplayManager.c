@@ -1,3 +1,4 @@
+/* -*- coding: utf-8 -*- */
 /*
   BSD 3-Clause License
 
@@ -29,7 +30,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
- */
+*/
 
 #include "./DisplayManager.h"
 #include "../lib/lwlog.h"
@@ -44,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
+
 static Racket		main_racket;
 static Ball		main_ball;
 static bool		first_time_move;
@@ -51,6 +53,7 @@ static uint8_t		count_of_collisions;
 static uint8_t		count_of_losts = 0;
 static GameContext	current_game_mode;
 static GameContext	game_modes[3];
+static bool             is_game_over;
 
 /**
  * @brief This is the main display function of the glut.
@@ -80,8 +83,9 @@ init()
 {
   lwlog_info("Initializing...");
 
-  first_time_move     = true;
-  count_of_collisions = 0;
+  first_time_move	= true;
+  count_of_collisions	= 0;
+  is_game_over		= false;
 
   GameContext easy;
   GameContext medium;
@@ -95,14 +99,14 @@ init()
   game_modes[0]                     = easy;
 
   medium.game_over_limit            = 3;
-  medium.initial_ball_speed         = 90.0;
+  medium.initial_ball_speed         = 70.0;
   medium.ball_speed_increment_limit = 10;
   medium.ball_speed_increment_rate  = 10;
   medium.difficulty                 = Medium;
   game_modes[1]                     = medium;
 
   hard.game_over_limit              = 2;
-  hard.initial_ball_speed           = 80.0;
+  hard.initial_ball_speed           = 30.0;
   hard.ball_speed_increment_limit   = 7;
   hard.ball_speed_increment_rate    = 15;
   hard.difficulty                   = Hard;
@@ -113,7 +117,7 @@ init()
   glutSpecialFunc(arrowKeyHandler);
   glutMouseFunc(mouseHandler);
   initMenu();
-  reset(true);
+  reset(true, false);
 }
 
 /**
@@ -126,7 +130,7 @@ init()
  * things like that, and does not touch the current game state.
  */
 void
-reset(bool hard_reset)
+reset(bool hard_reset, bool reset_game_over)
 {
 
   first_time_move = true;
@@ -159,9 +163,12 @@ reset(bool hard_reset)
       count_of_collisions = 0;
       count_of_losts      = 0;
       current_game_mode   = game_modes[0];
-      glutTimerFunc(16, update, 0); 
     }
   
+  if(reset_game_over)
+    {
+      is_game_over = false;
+    }
 }
 
 /**
@@ -194,7 +201,7 @@ mainMenuHandler(const int handle)
   switch(handle)
     {
     case 0:
-      reset(true);
+      reset(true, true);
       break;
     case 1:
       break;
@@ -237,15 +244,33 @@ subMenuHandler(const int entry)
 void
 update(const int value)
 {
+  
   glClear(GL_COLOR_BUFFER_BIT);
   drawRacket();
   drawBall();
-  moveBall();
-  traceBallMove();
-  lostCheck();
+  
+  if(!is_game_over)
+    {
+      moveBall();
+      traceBallMove();
+      lostCheck();
+    }
+  
+  else
+    {
+      char *game_over_status_message = (char *)malloc(sizeof(char) * 20);
+
+      sprintf(game_over_status_message, "Game Over!", NULL);
+  
+      lwlog_info("Game is over.");
+      writeScreenText(game_over_status_message);      
+    }
+  
+
   glutSwapBuffers();
   glutTimerFunc(16, update, 0);
 }
+
 
 /**
  * @brief This function makes an array of points to represent the racket body.
@@ -255,7 +280,9 @@ update(const int value)
  * @param height The height of the racket.
  */
 void
-makeRacketBody(RacketBody *body, const GLfloat center, const GLfloat width,
+makeRacketBody(RacketBody *body,
+	       const GLfloat center,
+	       const GLfloat width,
                const GLfloat height)
 {
   lwlog_debug("%s", "Making the racket body...");
@@ -484,8 +511,8 @@ mouseHandler(const int button, const int state, const int x, const int y)
  * used by OpenGL.
  * @param raw_x The x cordinate returned from glut.
  * @param raw_y The y cordinate returned from glut.
- * @param x The converted x cordinate to normal
- * @param y The converted y cordinate to normal
+ * @param x The converted x cordinate to normal.
+ * @param y The converted y cordinate to normal.
  * */
 void
 convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
@@ -554,7 +581,7 @@ traceBallMove()
       count_of_losts++;
       lwlog_notice("Ball out. Reseting game. %d times to fully lost.",
                    current_game_mode.game_over_limit - count_of_losts);
-      reset(false);
+      reset(false, false);
     }
 
   if(false == should_be_mirror)
@@ -651,21 +678,22 @@ lostCheck()
   if(count_of_losts >= current_game_mode.game_over_limit)
     {
       lwlog_notice("Lost. Reseting the game.");
-      reset(false);
-      //      glutTimerFunc(16, lostUpdateFunc, 0);
-      lostUpdateFunc(0);
+      reset(true, false);
+      is_game_over = true;
+      //      glutTimerFunc(16, update, GAME_OVER_MODE_CODE);
+      //      lostUpdateFunc(0);
     }
 }  
 
 
-void
-lostUpdateFunc(const int value)
-{
-  char *game_over_status_message = (char *)malloc(sizeof(char) * 20);
+/* void */
+/* lostUpdateFunc(const int value) */
+/* { */
+/*   char *game_over_status_message = (char *)malloc(sizeof(char) * 20); */
 
-  sprintf(game_over_status_message, "Game Over!", NULL);
+/*   sprintf(game_over_status_message, "Game Over!", NULL); */
   
-  lwlog_info("Game is over.");
-  writeScreenText(game_over_status_message);
-  glutTimerFunc(16, lostUpdateFunc, 0);
-}
+/*   lwlog_info("Game is over."); */
+/*   writeScreenText(game_over_status_message); */
+/*   glutTimerFunc(16, lostUpdateFunc, 0); */
+/* } */
