@@ -46,13 +46,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 
-static Racket		main_racket;
-static Ball		main_ball;
-static bool		first_time_move;
-static uint8_t		count_of_collisions;
-static uint8_t		count_of_losts = 0;
-static GameContext	current_game_mode;
-static GameContext	game_modes[3];
+static Racket           main_racket;
+static Ball             main_ball;
+static bool             first_time_move;
+static uint8_t          count_of_collisions;
+static uint8_t          count_of_losts = 0;
+static GameContext      current_game_mode;
+static GameContext      game_modes[3];
 static bool             is_game_over;
 
 /**
@@ -83,9 +83,9 @@ init()
 {
   lwlog_info("Initializing...");
 
-  first_time_move	= true;
-  count_of_collisions	= 0;
-  is_game_over		= false;
+  first_time_move       = true;
+  count_of_collisions   = 0;
+  is_game_over          = false;
 
   GameContext easy;
   GameContext medium;
@@ -281,8 +281,8 @@ update(const int value)
  */
 void
 makeRacketBody(RacketBody *body,
-	       const GLfloat center,
-	       const GLfloat width,
+               const GLfloat center,
+               const GLfloat width,
                const GLfloat height)
 {
   lwlog_debug("%s", "Making the racket body...");
@@ -489,7 +489,11 @@ sizeOfVector(const Vector *vector)
 }
 
 /**
- * @brief This function 
+ * @brief This function handles the mouse actions.
+ * @param button The clicked button.
+ * @param state The state of the button.
+ * @param x The x cordinate of the mouse when the action has taken.
+ * @param y The y cordinate of the mouse when the action has taken.
  */
 void
 mouseHandler(const int button, const int state, const int x, const int y)
@@ -530,8 +534,10 @@ convertLocation(const int *raw_x, const int *raw_y, double *x, double *y)
   *y = ((double)ret_y) / (double)half_window_height;
 }
 
-/** TODO: WRIETE THE DOC.
- * @brief
+/**
+ * @brief This function starts the ball movement at the first
+ * time playing.
+ * @param start_vector The direction of start.
  */
 void
 startBallMovement(Vector *start_vector)
@@ -539,16 +545,16 @@ startBallMovement(Vector *start_vector)
   if(!first_time_move)
     return;
 
-  const float	size_of_start_vector = sizeOfVector(start_vector);
-  const float	x_unit_vector        = start_vector->x	/ size_of_start_vector;
-  const float	y_unit_vector        = start_vector->y	/ size_of_start_vector;
-  main_ball.movement_direction.x     = x_unit_vector	/ main_ball.speed;
-  main_ball.movement_direction.y     = y_unit_vector	/ main_ball.speed;
-  first_time_move		     = false;
+  const float   size_of_start_vector = sizeOfVector(start_vector);
+  const float   x_unit_vector        = start_vector->x  / size_of_start_vector;
+  const float   y_unit_vector        = start_vector->y  / size_of_start_vector;
+  main_ball.movement_direction.x     = x_unit_vector    / main_ball.speed;
+  main_ball.movement_direction.y     = y_unit_vector    / main_ball.speed;
+  first_time_move                    = false;
 }
 
 /**
- * TODO: Write the doc.
+ * @brief This function traces the moving path of the ball and controls it.
  * */
 void
 traceBallMove()
@@ -560,7 +566,7 @@ traceBallMove()
 
   // wall collision detection.
   bool should_be_mirror = (ball_border_top >= 1) | (ball_border_right >= 1)
-						 | (ball_border_bottom <= -1);
+                                                 | (ball_border_bottom <= -1);
 
   // racket collision detection.
   const float bottom_limit
@@ -612,7 +618,7 @@ traceBallMove()
 }
 
 /**
- * TODO: Write the doc.
+ * @brief This function sets the new path for the ball when it hits the walls.
  */
 void
 redirectBall()
@@ -680,20 +686,5 @@ lostCheck()
       lwlog_notice("Lost. Reseting the game.");
       reset(true, false);
       is_game_over = true;
-      //      glutTimerFunc(16, update, GAME_OVER_MODE_CODE);
-      //      lostUpdateFunc(0);
     }
 }  
-
-
-/* void */
-/* lostUpdateFunc(const int value) */
-/* { */
-/*   char *game_over_status_message = (char *)malloc(sizeof(char) * 20); */
-
-/*   sprintf(game_over_status_message, "Game Over!", NULL); */
-  
-/*   lwlog_info("Game is over."); */
-/*   writeScreenText(game_over_status_message); */
-/*   glutTimerFunc(16, lostUpdateFunc, 0); */
-/* } */

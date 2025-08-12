@@ -17,7 +17,7 @@ main(int argc, char **argv)
                                       " "
                                       "4004013069");
   init();
-  glutTimerFunc(0, update, NORMAL_MODE_CODE);
+  glutTimerFunc(0, update, 0);
   glutMainLoop();
   return EXIT_SUCCESS;
 }

@@ -1,12 +1,13 @@
-#ifndef DISPLAY_MANAGER_H
-#define DISPLAY_MANAGER_H
+/* #ifndef DISPLAY_MANAGER_H */
+/* #define DISPLAY_MANAGER_H */
+#pragma once
 
 #include <GL/glut.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#define GAME_OVER_MODE_CODE 0x01
-#define NORMAL_MODE_CODE 0X02
+/* #define GAME_OVER_MODE_CODE 0x01 */
+/* #define NORMAL_MODE_CODE 0X02 */
 
 typedef struct
 {
@@ -86,5 +87,3 @@ void changeGameMode(Difficulty);
 void lostCheck();
 void lostUpdateFunc(const int);
 float sizeOfVector(const Vector*);
-
-#endif
